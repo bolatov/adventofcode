@@ -81,7 +81,24 @@ def part_1(input_file):
     return best_score
 
 
+def part_2(input_file):
+    numbers, boards = _read(input_file)
+    print(f"numbers={numbers}")
+    print(f"board_count={len(boards)}")
+    print(f"last_board={boards[-1]}")
+    best_step, best_score = None, None
+    for i in range(len(boards)):
+        marked = [[False for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+        win_step = _play_bingo(numbers, boards[i], marked)
+        if win_step > -1 and (best_step is None or win_step > best_step):
+            best_step = win_step
+            best_score = _calc_score(numbers, marked, win_step, boards[i])
+    return best_score
+
+
 if __name__ == "__main__":
     input_file = sys.argv[1]
     ans = part_1(input_file)
     print("Part 1:", ans)
+    ans = part_2(input_file)
+    print("Part 2:", ans)
