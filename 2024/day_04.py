@@ -49,9 +49,27 @@ def part1(matrix):
 
 def part2(matrix):
     result = 0
-    for arr in matrix:
-        if is_safe_with_toleration(arr):
-            #print("Part 2:", arr)
+    rows, cols = len(matrix), len(matrix[0])
+    topleft, bottomright = (-1,-1), (1,1)
+    topright, bottomleft = (-1,1), (1,-1)
+    for i in range(rows):
+        for j in range(cols):
+            if matrix[i][j] != "A":
+                continue
+            if not (
+                    (0 <= i-1) and (i+1 < rows) and (0 <= j-1) and (j+1 < cols)
+            ):
+                continue
+            if not (
+                    (matrix[i+topleft[0]][j+topleft[1]] == "M" and matrix[i+bottomright[0]][j+bottomright[1]] == "S") or
+                    (matrix[i+topleft[0]][j+topleft[1]] == "S" and matrix[i+bottomright[0]][j+bottomright[1]] == "M")
+            ):
+                continue
+            if not (
+                    (matrix[i+topright[0]][j+topright[1]] == "M" and matrix[i+bottomleft[0]][j+bottomleft[1]] == "S") or
+                    (matrix[i+topright[0]][j+topright[1]] == "S" and matrix[i+bottomleft[0]][j+bottomleft[1]] == "M")
+            ):
+                continue
             result += 1
     print("Part 2: ", result)
     return result
@@ -60,4 +78,4 @@ if __name__ == "__main__":
     filename = "input.txt" if len(sys.argv) < 2 else sys.argv[1]
     matrix = read_input_as_matrix(filename)
     part1(matrix)
-    #part2(matrix)
+    part2(matrix)
