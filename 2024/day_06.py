@@ -6,7 +6,7 @@ def read_input_as_matrix(filename="input.txt"):
     with open(filename) as f:
         lines = f.readlines()
         for line in lines:
-            matrix.append(line.strip())
+            matrix.append(list(line.strip()))
     return matrix
 
 
@@ -60,8 +60,11 @@ def find_init_position(matrix):
     raise ValueError("Initial position is not found")
 
 
-def visit(matrix, cur_pos, direction, visited):
+def visit(matrix, cur_pos, direction):
+    visited = dict()
     while True:
+        if cur_pos in visited and direction in visited[cur_pos]:
+            return -1
         if cur_pos not in visited:
             visited[cur_pos] = set()
         visited[cur_pos].add(direction)
@@ -72,12 +75,12 @@ def visit(matrix, cur_pos, direction, visited):
             direction = change_direction(direction)
             continue
         cur_pos = next_pos
+    return visited
 
 
 def part1(matrix):
     cur_pos, direction = find_init_position(matrix)
-    visited = dict()
-    visit(matrix, cur_pos, direction, visited)
+    visited = visit(matrix, cur_pos, direction)
     result = len(visited)
     print(f"Part 1: {result}")
     return result
@@ -112,31 +115,37 @@ def print_matrix(matrix, visited, obstacles, init_pos):
 
 
 def produces_loop(matrix, cur_pos, direction, visited, vis_prime, obstacle_pos):
-    direction = change_direction(direction)
-    cur_pos = get_next_pos(cur_pos, direction)
+    #print(f"1. cur_pos {cur_pos} direction is {direction} obstacle is at {obstacle_pos}")
+    #direction = change_direction(direction)
+    #cur_pos = get_next_pos(cur_pos, direction)
+    #print(f"2. cur_pos {cur_pos} direction is {direction} obstacle is at {obstacle_pos}")
     while True:
-        if (direction in visited.get(cur_pos, set()) or 
-                direction in vis_prime.get(cur_pos, set())):
+        #print(f"\tcur_pos {cur_pos} direction is {direction}")
+        if direction in vis_prime.get(cur_pos, set()):
             return True
+        #if (direction in visited.get(cur_pos, set()) or 
+        #        direction in vis_prime.get(cur_pos, set())):
+        #    return True
         if cur_pos not in vis_prime:
             vis_prime[cur_pos] = set()
         vis_prime[cur_pos].add(direction)
         next_pos = get_next_pos(cur_pos, direction)
         if is_outside(matrix, next_pos):
+            #print(f"\t{next_pos} is outside")
             break
-        if is_obstacle(matrix, next_pos):
+        if is_obstacle(matrix, next_pos) or next_pos == obstacle_pos:
             direction = change_direction(direction)
+            #print(f"\tchange direction to {direction}")
             continue
         cur_pos = next_pos
     return False
 
 
-def part2(matrix):
+def part2_old(matrix):
     init_pos, direction = find_init_position(matrix)
     cur_pos = (init_pos[0], init_pos[1])
     visited = dict()
-    #visit(matrix, cur_pos, direction, visited):
-    result = dict()
+    obstacles = dict()
     while True:
         if cur_pos not in visited:
             visited[cur_pos] = set()
@@ -148,13 +157,29 @@ def part2(matrix):
             direction = change_direction(direction)
         else:
             if next_pos != init_pos and produces_loop(matrix, cur_pos, direction, visited, dict(), next_pos):
-                result[next_pos] = len(result) + 1
+                obstacles[next_pos] = len(obstacles) + 1
             cur_pos = next_pos
 
-    #print_matrix(matrix, visited, result, init_pos)
-    result = len(result)
+    #print_matrix(matrix, visited, obstacles, init_pos)
+    result = len(obstacles)
     print(f"Part 2: {result}")
     return result
+
+
+def part2(matrix):
+    init_pos, direction = find_init_position(matrix)
+    possible_positions = visit(matrix, init_pos, direction)
+    result = 0
+    for cur_pos in possible_positions.keys():
+        if cur_pos == init_pos:
+            continue
+        icur, jcur = cur_pos
+        value = matrix[icur][jcur]
+        matrix[icur][jcur] = "#"
+        if visit(matrix, init_pos, direction) == -1:
+            result += 1
+        matrix[icur][jcur] = value
+    print(f"Part 2: {result}")
 
 
 if __name__ == "__main__":
