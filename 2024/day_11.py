@@ -26,23 +26,38 @@ def part1(arr, iterations):
     #print(arr)
     q = arr
     for iteration in range(iterations):
-        print(iteration)
+        #print(iteration)
         qprime = []
         for x in q:
             qprime.extend(apply_rule(x))
         q = qprime
     print(f"Part 1: {len(q)}")
-    return len(q)
+    return q
 
 
-def part2(arr):
+def part2(arr, iterations):
+    mp = {}
+    for i in arr:
+        if i not in mp:
+            mp[i] = 0
+        mp[i] += 1
+    memo = {}
+    for iteration in range(iterations):
+        mprime = {}
+        for k, cnt in mp.items():
+            for x in apply_rule(k):
+                if x not in mprime:
+                    mprime[x] = 0
+                mprime[x] += cnt
+        mp = mprime
     result = 0
+    for cnt in mp.values():
+        result += cnt
     print(f"Part 2: {result}")
-    return result
 
 
 if __name__ == "__main__":
     filename = "input.txt" if len(sys.argv) < 2 else sys.argv[1]
     arr = read_input(filename)
     part1(arr, 25)
-    #part1(arr, 75)
+    part2(arr, 75)
