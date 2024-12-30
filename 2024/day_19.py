@@ -39,15 +39,48 @@ def is_possible(design, patterns):
 
 
 def part1(patterns, designs):
-    result = 0
+    #print(f"patterns: {patterns}")
+    #print(f"designs: {designs}")
+    possible_designs = list()
     for i in range(len(designs)):
         design = designs[i]
-        if is_possible(design, patterns):
-            result += 1
+        if is_possible(design, patterns) > 0:
+            possible_designs.append(design)
+    return possible_designs
+
+
+def calc_diff_ways(design, patterns):
+    n = len(design)
+    dp = [0 for _ in range(n + 1)]
+    dp[n] = 1
+    while n > 0:
+        #print(f"n = {n} {design[-n:]}")
+        s = design[-n:]
+        if dp[n] > 0:
+            for i in range(1, n+1):
+                prefix = s[:i]
+                #print(f"  i={i} prefix: '{prefix}'")
+                if prefix in patterns:
+                    dp[n-i] += dp[n]
+                    #print(f"    dp: {dp}")
+        n -= 1
+        #print()
+    return dp[0]
+
+
+def part2(patterns, designs):
+    print("-="*50)
+    #print(f"patterns: {patterns}")
+    #print(f"designs: {designs}")
+    result = 0
+    for design in designs:
+        result += calc_diff_ways(design, patterns)
     return result
 
 
 if __name__ == "__main__":
     filename = "input.txt" if len(sys.argv) < 2 else sys.argv[1]
     towel_patterns, desired_designs = read_input(filename)
-    print("Part 1: ", part1(set(towel_patterns), desired_designs))
+    possible_designs = part1(set(towel_patterns), desired_designs)
+    print("Part 1: ", len(possible_designs))
+    print("Part 2: ", part2(towel_patterns, possible_designs))
