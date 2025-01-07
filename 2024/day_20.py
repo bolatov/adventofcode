@@ -49,17 +49,13 @@ def is_between(begin, end, value):
     return begin <= value < end
 
 
-def part1(matrix, start, end, threshold):
+def calc(matrix, start, end, path, dist):
     rows, cols = len(matrix), len(matrix[0])
-    dist = [[INF for _ in range(cols)] for _ in range(rows)]
-    dist[start[0]][start[1]] = 1
-
     # Calculate the distances from S to (i, j)
     q = [start]
-    path = set()
+    path.append(start)
     while q:
         i, j = q.pop()
-        path.add((i,j))
         for direction in DIRECTIONS:
             ii, jj = direction
             inext, jnext = i + ii, j + jj
@@ -71,8 +67,19 @@ def part1(matrix, start, end, threshold):
                 dist[inext][jnext] = dist[i][j] + 1
                 if (inext, jnext) != end:
                     q.append((inext, jnext))
-    print(f"end: {dist[end[0]][end[1]]}")
-    print_matrix(dist, start, end, matrix)
+                    path.append((inext, jnext))
+    path.append(end)
+
+
+def part1(matrix, start, end, threshold):
+    rows, cols = len(matrix), len(matrix[0])
+    dist = [[INF for _ in range(cols)] for _ in range(rows)]
+    dist[start[0]][start[1]] = 1
+
+    path = list()
+    calc(matrix, start, end, path, dist)
+    #print(f"end: {dist[end[0]][end[1]]}")
+    #print_matrix(dist, start, end, matrix)
 
     # Check if crossing the # will save picoseconds
     cheats = {}
@@ -106,6 +113,40 @@ def part1(matrix, start, end, threshold):
     return result
 
 
+def part2(matrix, start, end, threshold, max_distance):
+    rows, cols = len(matrix), len(matrix[0])
+    dist = [[INF for _ in range(cols)] for _ in range(rows)]
+    dist[start[0]][start[1]] = 1
+
+    path = list()
+    calc(matrix, start, end, path, dist)
+    assert start in path
+    assert end in path
+    cheats = {}
+    for i in range(len(path)):
+        for j in range(i+1, len(path)):
+            dist_i = dist[path[i][0]][path[i][1]]
+            dist_j = dist[path[j][0]][path[j][1]]
+            assert dist_i < dist_j, f"Assertion failed {path[i]} {path[j]}"
+            manhattan_dist = abs(path[i][0] - path[j][0]) + abs(path[i][1] - path[j][1])
+            if manhattan_dist > max_distance:
+                continue
+            #print(f"{dist_i} -> {dist_j}")
+            #print(f"  manhattan_dist={manhattan_dist}")
+            potential_saving = dist_j - dist_i - manhattan_dist
+            #print(f"     potential_saving={potential_saving}")
+            if potential_saving < threshold:
+                continue
+            if potential_saving not in cheats:
+                cheats[potential_saving] = 0
+            cheats[potential_saving] += 1
+    result = 0
+    for key in sorted(cheats.keys()):
+        print(f"There are {cheats[key]} cheats that save {key} picoseconds.")
+        result += cheats[key]
+    return result
+
+
 def find_start_end(matrix):
     start, end = None, None
     for row in range(len(matrix)):
@@ -122,3 +163,4 @@ if __name__ == "__main__":
     matrix = read_input(filename)
     start, end = find_start_end(matrix)
     print("Part 1: ", part1(matrix, start, end, 100))
+    print("Part 2: ", part2(matrix, start, end, 100, 20))
